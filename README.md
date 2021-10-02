@@ -4,6 +4,8 @@ It was made using the Yoakke Lexer/Parser generator and some intense feelings.
 If you'll be using the Carcass programming language for your project, please email me with your project, as I'm interested in seeing it!
 If I do see your email, I will surely reply.
 
+///INFO: If you're using CarcassHub, you NEED to have the .NET 5.0 runtime installed so it can work.///
+
 # How to Build?
 To build Carcass you just need to clone the repository and well run ``dotnet build``.
 It's as simple as that.
