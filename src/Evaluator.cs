@@ -206,8 +206,10 @@ namespace Carcass
         
         public void Evaluate(IReadOnlyList<Statement> stmts)
         {
+            List<Statement> stmtss = new List<Statement>();
+            stmtss.AddRange(stmts);
             
-            foreach (Statement st in stmts)
+            foreach (Statement st in stmtss)
             {
                 
                 switch (st.kind)
@@ -239,6 +241,9 @@ namespace Carcass
                         var stmt = (st as ExpressionStatement);
 
                         this.Visit(stmt.expr);
+                        break;
+                    case StatementKind.Import:
+                        stmtss.AddRange(new Parser(new Lexer(System.IO.File.ReadAllText((st as ImportStatement).fileName))).ParseProgram().Ok.Value);
                         break;
                     case StatementKind.If:
                         var iff = (st as IfStatement);

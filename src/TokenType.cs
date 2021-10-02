@@ -24,6 +24,7 @@ namespace Carcass
         [Token("add")] KwAdd,
         [Token("pass")] KwPass,
         [Token("return")] KwReturn,
+        [Token("import")] KwImport,
  
         [Regex(@"[A-Za-z_][A-Za-z0-9_]*")] Identifier,
         [Regex(Regexes.StringLiteral)] String,

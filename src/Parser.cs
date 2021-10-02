@@ -46,7 +46,8 @@ namespace Carcass
         Function,
         CallFn,
         Expression,
-        Return
+        Return,
+        Import
     }
     #nullable enable
     public class Statement
@@ -96,6 +97,18 @@ namespace Carcass
             identifier = ident;
         }
     }
+
+    public class ImportStatement : Statement
+    {
+        public string fileName;
+
+        public ImportStatement(string fLn)
+        {
+            fileName = fLn;
+            kind = StatementKind.Import;
+        }
+    }
+
     public class IfStatement : Statement
     {
         public Expression expr;
@@ -201,6 +214,11 @@ namespace Carcass
         private static Statement PrintVarStatement(IToken<TokenType> type, IToken<TokenType> ident)
         {
             return new Statement(ident.Text, StatementKind.PrintVar);
+        }
+        [Rule("stmt: KwImport String")]
+        private static Statement ImportStatement(Token kw, Token str)
+        {
+            return new ImportStatement(str.Text);
         }
         [Rule("stmt: KwVar Identifier Equal String")]
         private static Statement VariableStrStatement(IToken<TokenType> type, IToken<TokenType> ident, IToken<TokenType> equal, IToken<TokenType> str)

@@ -1,10 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Configuration>Release</Configuration>
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>xsneon</Authors>
+    <Company>Carcass-Project</Company>
+    <Description>Carcass is a simple programming language that is simple to use for beginners users and such.
+
+This is a package to integrate Carcass in one of your apps.
+
+Contents:
+
+Lexer,
+Parser,
+Evaluator.
+
+Look at CarcassI in the Carcass repository for an example.</Description>
+    <Copyright>Carcass-Project© 2021, All rights reserved.</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>carcass.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/Carcass-Project/Carcass</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
+    <PackageTags>Carcass,carcass,cx,cr,crc,Programming Language,language,programming</PackageTags>
+    <PackageReleaseNotes>v0.0.2 -&gt; Added import directive.</PackageReleaseNotes>
+    <NeutralLanguage>en</NeutralLanguage>
+    <AssemblyVersion>0.0.0.2</AssemblyVersion>
+    <FileVersion>0.0.0.2</FileVersion>
+    <Version>0.0.2</Version>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +44,13 @@
     <PackageReference Include="Yoakke.Symbols" Version="2021.9.28-2.26.0-nightly" />
     <PackageReference Include="Yoakke.SyntaxTree" Version="2021.9.26-2.24.42-nightly" />
     <PackageReference Include="Yoakke.SyntaxTree.Generator" Version="2021.9.26-2.24.42-nightly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\..\Lia's Mansion\Documents\carcass.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
