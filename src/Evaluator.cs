@@ -243,7 +243,7 @@ namespace Carcass
                         this.Visit(stmt.expr);
                         break;
                     case StatementKind.Import:
-                        stmtss.AddRange(new Parser(new Lexer(System.IO.File.ReadAllText((st as ImportStatement).fileName))).ParseProgram().Ok.Value);
+                        this.Evaluate(new Parser(new Lexer(System.IO.File.ReadAllText((st as ImportStatement).fileName.Replace("\"", "")))).ParseProgram().Ok.Value);
                         break;
                     case StatementKind.If:
                         var iff = (st as IfStatement);
