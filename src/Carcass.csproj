@@ -27,16 +27,17 @@ Look at CarcassI in the Carcass repository for an example.</Description>
     <RepositoryUrl>https://github.com/Carcass-Project/Carcass</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <PackageTags>Carcass,carcass,cx,cr,crc,Programming Language,language,programming</PackageTags>
-    <PackageReleaseNotes>v0.0.2 -&gt; Added import directive.</PackageReleaseNotes>
+    <PackageReleaseNotes>v0.0.25 -&gt; Added import directive.</PackageReleaseNotes>
     <NeutralLanguage>en</NeutralLanguage>
-    <AssemblyVersion>0.0.0.2</AssemblyVersion>
-    <FileVersion>0.0.0.2</FileVersion>
-    <Version>0.0.2</Version>
+    <AssemblyVersion>0.0.0.25</AssemblyVersion>
+    <FileVersion>0.0.0.25</FileVersion>
+    <Version>0.0.25</Version>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    <PackageReference Include="Raylib-cs" Version="3.7.0.1" />
     <PackageReference Include="Yoakke.Lexer" Version="2021.9.30-2.28.10-nightly" />
     <PackageReference Include="Yoakke.Lexer.Generator" Version="2021.9.25-2.27.30-nightly" />
     <PackageReference Include="Yoakke.Parser" Version="2021.9.25-2.27.30-nightly" />
