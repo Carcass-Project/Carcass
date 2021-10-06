@@ -182,11 +182,13 @@ Syntax for While statements:
 
 So the possible operators for comparison are:
 
-```>
+```
+>
 <
 >=
 <=
-==```
+==
+```
 
 And it's pretty the same as in like basic math
 
