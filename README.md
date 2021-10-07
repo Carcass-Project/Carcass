@@ -1,4 +1,4 @@
-<badge>https://img.shields.io/nuget/dt/Carcass?color=%2311FFF&label=NuGet%20Package%20Downloads</badge>
+![Nuget](https://img.shields.io/nuget/dt/Carcass?color=%2311FFF&label=NuGet%20Package%20Downloads)
 
 # Carcass
 Carcass is a basic programming language that's suppost to simple for beginners and not that hard on the person writing a program in it.
