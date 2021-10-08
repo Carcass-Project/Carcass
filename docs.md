@@ -73,9 +73,9 @@ We can do so through the input function.
 
 It's EXTREMELY simple as it takes 0 arguments.
 
-All you need is basically just mention the ``input`` function and you're done.
+All you need is basically just mention the ``input()`` function and you're done.
 
-Like, ```print input``` would just say back what you said.
+Like, ```print input()``` would just say back what you said.
 
 So this part was probably the simplest..
 
@@ -124,8 +124,8 @@ To turn the string input of the input function we can use the asInt function.
 So to start, let's grab the two values of a and b.
 
 ```
-var a = asInt(input)
-var b = asInt(input)
+var a = asInt(input())
+var b = asInt(input())
 ```
 
 Then we have to declare the function.
