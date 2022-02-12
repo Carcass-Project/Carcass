@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,10 +69,44 @@ namespace Carcass
         {
             return ((num as int?).ToString());
         }
+        public object arrLen(object ident)
+        {
+            var f = ident;
+
+            if (f is List<object>)
+            {
+                var fx = (f as List<object>);
+                return fx.Count;
+            }
+            else
+            {
+                throw new Exception("Invalid variable used in insert, the variable used has to be an array.");
+            }
+        }
+        public void InsertToArray(object ident, object val)
+        {
+            var f = ident;
+
+            if(f is List<object>)
+            {
+                var fx = (f as List<object>);
+
+                fx.Add(val);
+            }
+            else
+            {
+                throw new Exception("Invalid variable used in insert, the variable used has to be an array.");
+            }
+        }
+        public object JoinStr(object str1, object str2)
+        {
+            return $"{str1}{str2}";
+        }
         Dictionary<string, object> VariableDict = new Dictionary<string, object>();
         Dictionary<string, object> GlobalVariableDict = new Dictionary<string, object> { };
         Dictionary<string, FunctionStatement> FunctionDict = new Dictionary<string, FunctionStatement>();
         Dictionary<string, int> BuiltInFunctions = new Dictionary<string, int>();
+        string directory;
         private readonly StackFrame globalFrame = new();
         public readonly Stack<StackFrame> callStack = new();
 
@@ -85,11 +120,41 @@ namespace Carcass
             VarLiteralExpr => this.Visit((expr as VarLiteralExpr)),
             InputExpr => this.Visit((expr as InputExpr)),
             StringExpr => this.Visit((expr as StringExpr)),
+            ArrayExpr => this.Visit((expr as ArrayExpr)),
+            ArrayRefExpr => this.Visit((expr as ArrayRefExpr)),
+            UnaryExpr => this.Visit((expr as UnaryExpr)),
+            BoolExpr => this.Visit((expr as BoolExpr)),
             _ => throw new NotImplementedException("This expression is not supported by the Carcass runtime. -> RARE ERROR <- Please report to our team on Github.")
+        };
+        public object Visit(BoolExpr expr) => expr.boolean switch
+        {
+            TokenType.BTrue => true,
+            TokenType.BFalse => false
+        };
+        public object Visit(UnaryExpr expr) => expr.op.Kind switch
+        {
+            TokenType.Minus => -(int)this.Visit(expr.a),
+            TokenType.Plus => (int)this.Visit(expr.a),
+            TokenType.BoolNegate => !(bool)this.Visit(expr.a)
         };
         public object Visit(StringExpr expr)
         {
             return expr.str.Replace("\"", "");
+        }
+        public object Visit(ArrayExpr expr)
+        {
+            List<object> stuff = new List<object>();
+
+            foreach (var c in expr.symbols)
+            {
+                stuff.Add(this.Visit(c));
+            }
+
+            return stuff;
+        }
+        public object Visit(ArrayRefExpr expr)
+        {
+            return (this.callStack.Peek().Values[expr.ident] as List<object>)[((int)(this.Visit(expr.atPos) as int?))];
         }
         public object Visit(InputExpr expr)
         {
@@ -120,7 +185,7 @@ namespace Carcass
             TokenType.GreaterEq => (int)this.Visit(bin.left) >= (int)this.Visit(bin.right),
             TokenType.Lower => (int)this.Visit(bin.left) < (int)this.Visit(bin.right),
             TokenType.LowerEq => (int)this.Visit(bin.left) <= (int)this.Visit(bin.right),
-            TokenType.EqualTo => (int)this.Visit(bin.left) == (int)this.Visit(bin.right),
+            TokenType.EqualTo => this.Visit(bin.left) == this.Visit(bin.right),
             _ => throw new NotImplementedException("This operation is not supported by the Carcass runtime. -> UNCOMMON ERROR <- Ask our team on Github if you think it should be valid!")
         };
         public object Visit(LiteralExpr lit)
@@ -144,6 +209,21 @@ namespace Carcass
             BuiltInFunctions.Add("asInt", 0);
             BuiltInFunctions.Add("strlen", 0);
             BuiltInFunctions.Add("OpenWindow", 0);
+            BuiltInFunctions.Add("insert", 0);
+            BuiltInFunctions.Add("arrLen", 0);
+            BuiltInFunctions.Add("asStr", 0);
+            BuiltInFunctions.Add("join", 0);
+            BuiltInFunctions.Add("WindowShouldClose", 0);
+            BuiltInFunctions.Add("CloseWindow", 0);
+            BuiltInFunctions.Add("InitDraw", 0);
+            BuiltInFunctions.Add("EndDraw", 0);
+            BuiltInFunctions.Add("Start2D", 0);
+            BuiltInFunctions.Add("End2D", 0);
+            BuiltInFunctions.Add("Start3D", 0);
+            BuiltInFunctions.Add("End3D", 0);
+            BuiltInFunctions.Add("ClearBG", 0);
+            BuiltInFunctions.Add("DrawRectangle", 0);
+            BuiltInFunctions.Add("sys", 0);
         }
         protected object? Visit(CallFunction call)
         {
@@ -218,7 +298,109 @@ namespace Carcass
                             Console.WriteLine("No instance of strlen uses 0 arguments. It supports only strings.");
                         }
                     }
-                    if(call.funcName == "OpenWindow")
+                    if(call.funcName == "sys")
+                    {
+                        if (call.args.Count > 0)
+                        {
+                            Process proc = new Process();
+                            proc.StartInfo = new ProcessStartInfo("cmd.exe", "/c " + this.Visit(call.args[0]));
+
+                            proc.Start();
+                        }
+                        else
+                        {
+                            Console.WriteLine("No instance of sys uses 0 arguments. It supports a command string.");
+                        }
+                    }
+                    if (call.funcName == "arrLen")
+                    {
+                        if (call.args.Count > 0)
+                        {
+                            throw new Return(arrLen(this.Visit(call.args[0])));
+                        }
+                        else
+                        {
+                            Console.WriteLine("No instance of arrLen uses 0 arguments. It supports only arrays.");
+                        }
+                    }
+                    if(call.funcName == "WindowOpen")
+                    {
+                        throw new Return(Raylib.WindowShouldClose());
+                    }
+                    if(call.funcName == "CloseWindow")
+                    {
+                        Raylib.CloseWindow();
+                    }
+                    if(call.funcName == "InitDraw")
+                    {
+                        Raylib.BeginDrawing();
+                    }
+                    if (call.funcName == "EndDraw")
+                    {
+                        Raylib.EndDrawing();
+                    }
+
+                    if (call.funcName == "ClearBG")
+                    {
+                        if (call.args.Count > 0)
+                        {
+                            Raylib.ClearBackground(Raylib.ColorFromNormalized(new System.Numerics.Vector4((float)this.Visit(call.args[0])/255f, (float)this.Visit(call.args[1])/255f, (float)this.Visit(call.args[2])/255f, (float)this.Visit(call.args[3])/255f)));
+                        }
+                        else
+                        {
+                            Raylib.ClearBackground(Color.RAYWHITE);
+                            //Console.WriteLine("No instance of ClearBG uses 0 arguments. It supports numbers R, G, B, A.");
+                        }
+                    }
+
+                    if(call.funcName == "DrawRectangle")
+                    {
+                        if (call.args.Count > 0)
+                        {
+                            Raylib.DrawRectangle((int)this.Visit(call.args[0]), (int)this.Visit(call.args[1]), (int)this.Visit(call.args[2]), (int)this.Visit(call.args[3]), Color.RED);
+                        }
+                        else
+                        {
+                            Console.WriteLine("No instance of DrawRectangle uses 0 arguments. It supports numbers sizeX, sizeY, X, Y, R, G, B, A.");
+                        }
+                    }
+
+                    if (call.funcName == "join")
+                    {
+                        if (call.args.Count > 0)
+                        {
+                            throw new Return(JoinStr(this.Visit(call.args[0]), this.Visit(call.args[1])));
+                        }
+                        else
+                        {
+                            Console.WriteLine("No instance of join uses 0 arguments. It supports String str1, String str2.");
+                        }
+                    }
+                    if (call.funcName == "insert")
+                    {
+                        if (call.args.Count > 0)
+                        {
+                            InsertToArray(this.Visit(call.args[0]), this.Visit(call.args[1]));
+                        }
+
+
+                        else
+                        {
+                            Console.WriteLine("No instance of insert uses 0 arguments. It supports Array identifier, any value.");
+                        }
+                    }
+                    if (call.funcName == "asStr")
+                    {
+                        if (call.args.Count > 0)
+                        {
+                            asString(this.Visit(call.args[0]));
+                        }
+                        else
+                        {
+                            Console.WriteLine("No instance of asStr uses 0 arguments. It supports only numbers.");
+                        }
+                    }
+                    if (call.funcName == "OpenWindow")
                     {
                         if (call.args.Count > 0)
                         {
@@ -286,8 +468,11 @@ namespace Carcass
 
                         this.Visit(stmt.expr);
                         break;
+                    case StatementKind.With:
+                        directory = (st as WithStatement).dir;
+                        break;
                     case StatementKind.Import:
-                        this.Evaluate(new Parser(new Lexer(System.IO.File.ReadAllText((st as ImportStatement).fileName.Replace("\"", "")))).ParseProgram().Ok.Value);
+                        this.Evaluate(new Parser(new Lexer(System.IO.File.ReadAllText(System.IO.Path.Combine(directory, (st as ImportStatement).fileName.Replace("\"", ""))))).ParseProgram().Ok.Value);
                         break;
                     case StatementKind.SetVar:
                         var t = (st as VarSetStatement);
@@ -303,7 +488,8 @@ namespace Carcass
                     case StatementKind.Return:
                         var ret = (st as ReturnStatement);
                         throw new Return(ret.expr == null ? null : this.Visit(ret.expr));
-                    /*case StatementKind.CallFn:
+                    
+                    /*case  StatementKind.CallFn:
                         var a = (st as CallFunction);
                         var f = FunctionDict[a.funcName];
                         int i = 0;
@@ -324,7 +510,7 @@ namespace Carcass
         }
         public object PerformAdd(object left, object right)
         {
-            if (left is string || right is string) return $"{left}{right}";
+            if (left is string || right is string) return (left as string)+(right as string);
             return (int)left + (int)right;
         }
     }

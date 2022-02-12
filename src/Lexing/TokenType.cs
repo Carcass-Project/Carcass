@@ -26,6 +26,12 @@ namespace Carcass
         [Token("pass")] KwPass,
         [Token("return")] KwReturn,
         [Token("import")] KwImport,
+        [Token("for")] KwFor,
+        [Token("with")] KwWith,
+        [Token("true")] BTrue,
+        [Token("false")] BFalse,
+        [Token("inline")] KwInline,
+        [Token("il")] InIL,
  
         [Regex(@"[A-Za-z_][A-Za-z0-9_]*")] Identifier,
         [Regex(Regexes.StringLiteral)] String,
@@ -38,11 +44,20 @@ namespace Carcass
         [Token(":")] Colon,
         [Token(">")] Greater,
         [Token("<")] Lower,
+        [Token("!")] BoolNegate,
         [Token(">=")] GreaterEq,
         [Token("<=")] LowerEq,
         [Token("==")] EqualTo,
+        [Token("++")] IncPlus,
+        [Token("{")] BracketOpen,
+        [Token("}")] BracketClose,
+        [Token("[")] BBracketOpen,
+        [Token("]")] BBracketClose,
+        [Token("->")] PointerRight,
 
         [Regex(@"[0-9]+")] IntLiteral,
+        [Regex(Regexes.IeeeFloatLiteral)] FloatLiteral,
+        [Regex(Regexes.HexLiteral)] HexLiteral
     }
 
     [Lexer(typeof(TokenType))]

@@ -46,10 +46,14 @@ namespace Carcass
         Function,
         CallFn,
         Expression,
+        Unary,
         Return,
         Import,
         While,
-        SetVar
+        SetVar,
+        For,
+        With,
+        InlineIL
     }
     #nullable enable
     public class Statement
@@ -74,11 +78,14 @@ namespace Carcass
         Variable,
         Call,
         If,
+        HexLiteral
     }
     public abstract class Expression { public ExpressionKind kind; }
     public class BinaryExpr : Expression { public Expression left; public Token op; public Expression right; public BinaryExpr(Expression _left, Token _op, Expression _right) { left = _left; op = _op; right = _right; kind = ExpressionKind.Binary; } }
     public class LiteralExpr : Expression { public Token tok; public LiteralExpr(Token tk) { tok = tk; kind = ExpressionKind.Literal; } }
+    public class HexLiteralExpr : Expression { public Token tok; public HexLiteralExpr(Token tk) { tok = tk; kind = ExpressionKind.HexLiteral; } }
     public class VarExpr : Expression { public string? identifier; public Expression? expr; public VarExpr(string ident, Expression ex) { identifier = ident; expr = ex; kind = ExpressionKind.Variable; } }
+    public class BoolExpr : Expression { public TokenType boolean; public BoolExpr(TokenType bll) { boolean = bll; } }
     public class CallFunction : Expression
     {
         public string? funcName;
@@ -108,6 +115,17 @@ namespace Carcass
         {
             fileName = fLn;
             kind = StatementKind.Import;
+        }
+    }
+    
+    public class WithStatement : Statement
+    {
+        public string dir;
+
+        public WithStatement(string direct)
+        {
+            dir = direct;
+            kind = StatementKind.With;
         }
     }
 
@@ -149,6 +167,29 @@ namespace Carcass
             kind = StatementKind.While;
         }
     }
+    public class ForStatement : Statement
+    {
+        public Expression expr;
+        public BlockStatement stmt;
+
+        public ForStatement(Expression ex, BlockStatement stmtt)
+        {
+            expr = ex;
+            stmt = stmtt;
+            kind = StatementKind.For;
+        }
+    }
+
+    public class StringInlineILStatement : Statement
+    {
+        public Expression ILCode;
+
+        public StringInlineILStatement(Expression code)
+        {
+            ILCode = code;
+            kind = StatementKind.InlineIL;
+        }
+    }
 
     public class ReturnStatement : Statement
     {
@@ -163,6 +204,8 @@ namespace Carcass
 
     public class PrintExpr : Expression { public Expression expr; public PrintExpr(Expression ex) { expr = ex; } }
     public class InputExpr : Expression { public string msg; public InputExpr(string _msg) { msg = _msg; } }
+    public class ArrayExpr : Expression { public Expression[] symbols; public ArrayExpr(Expression[] sym) { symbols = sym; } }
+    public class ArrayRefExpr : Expression { public Expression atPos; public string ident; public ArrayRefExpr(Expression pos, string id) { atPos = pos; ident = id; } }
     public class VariableDeclaration : Statement
     {
         public string? identifier;
@@ -186,6 +229,18 @@ namespace Carcass
         }
     }
     
+    public class UnaryExpr : Expression
+    {
+        public Expression a;
+        public Token op;
+
+        public UnaryExpr(Expression ax, Token opx)
+        {
+            a = ax;
+            opx = op;
+        }
+    }
+
     public class StringExpr : Expression { public string str; public StringExpr(string st) { str = st; } }
 
     public class ExpressionStatement : Statement
@@ -229,11 +284,11 @@ namespace Carcass
             return new FunctionStatement(name.Text,body, paramList.Values.Select(t => t.Text).ToList().ToValue());
         }
 
-        [Rule("stmt: KwPrint String")]
+        /*[Rule("stmt: KwPrint String")]
         private static Statement PrintStatement(IToken<TokenType> type, IToken<TokenType> str)
         {
-            return new Statement(str.Text, StatementKind.Print);
-        }
+            return new Statement(str.Text.Replace("\"", ""), StatementKind.Print);
+        }*/
         [Rule("expression: KwPrint expression")]
         private static Expression PrintSStatement(IToken<TokenType> type, Expression str)
         {
@@ -249,11 +304,11 @@ namespace Carcass
         {
             return new ImportStatement(str.Text);
         }
-        [Rule("stmt: KwVar Identifier Equal String")]
+        /*[Rule("stmt: KwVar Identifier Equal String")]
         private static Statement VariableStrStatement(IToken<TokenType> type, IToken<TokenType> ident, IToken<TokenType> equal, IToken<TokenType> str)
         {
-            return new VariableDeclaration(ident.Text, str.Text);
-        }
+            return new VariableDeclaration(ident.Text, str.Text.Replace("\"", ""));
+        }*/
         [Rule("expression: KwVar Identifier Equal expression")]
         private static Expression VariableExprStatement(IToken<TokenType> type, IToken<TokenType> ident, IToken<TokenType> equal, Expression intlit)
         {
@@ -264,10 +319,25 @@ namespace Carcass
         {
             return new VarSetStatement(ident.Text, expr);
         }
+        /*[Rule("KwInline PointerRight InIL BBracketOpen expression BBracketClose")]
+        private static Statement InlinedIL(Token _1, Token _2, Token _3, Token _4, Expression _expr, Token _5)
+        {
+            return new StringInlineILStatement(_expr);
+        }*/
         [Rule("expression : Identifier")]
         private static Expression VarLit(Token ident)
         {
             return new VarLiteralExpr(ident.Text);
+        }
+        [Rule("expression: BracketOpen (expression(',' expression) *) ? BracketClose")]
+        private static Expression ArrayExprDec(Token brO, Punctuated<Expression, Token> stmts, Token CloseBR)
+        {
+            return new ArrayExpr(stmts.Values.Select(t => t).ToList().ToValue().ToArray());
+        }
+        [Rule("expression: Identifier BBracketOpen expression BBracketClose")]
+        private static Expression GetArr(Token ident, Token br, Expression expr, Token brC)
+        {
+            return new ArrayRefExpr(expr, ident.Text);
         }
         [Rule("block_stmt: '{' stmt* '}'")]
         private static BlockStatement BlockStmt(IToken<TokenType> _1, IReadOnlyList<Statement> statements, IToken<TokenType> _2)
@@ -284,7 +354,7 @@ namespace Carcass
         {
             return new CallFunction(name.Text, argsList.Values.Select(t => t).ToList().ToValue());
         }
-        [Rule("stmt: expression")]
+        [Rule("stmt: (expression|pre_expression)")]
         private static Statement ExprStmt(Expression expr)
         {
             return new ExpressionStatement(expr);
@@ -297,7 +367,22 @@ namespace Carcass
         [Rule("expression: String")]
         private static Expression strth(Token str)
         {
-            return new StringExpr(str.Text);
+            return new StringExpr(str.Text.Replace("\"", ""));
+        }
+        [Rule("stmt: KwWith String")]
+        private static Statement withdr(Token kw, Token str)
+        {
+            return new WithStatement(str.Text.Replace("\"", ""));
+        }
+        [Rule("expression: BTrue")]
+        private static Expression booleantrue(Token truee)
+        {
+            return new BoolExpr(truee.Kind);
+        }
+        [Rule("expression: BFalse")]
+        private static Expression booleanfalse(Token truee)
+        {
+            return new BoolExpr(truee.Kind);
         }
         [Right("^")]
         [Left("*", "/", "%")]
@@ -320,6 +405,10 @@ namespace Carcass
         [Rule("expression : IntLiteral")]
         public static Expression IntLiteral(IToken<TokenType> token) { return new LiteralExpr(token); }
 
-       
+        [Rule("pre_expression: ('+'|'-'|'!') pre_expression")]
+        public static Expression UnaryOp(Token op, Expression a)
+        {
+            return new UnaryExpr(a, op);
+        }
     }
 }
